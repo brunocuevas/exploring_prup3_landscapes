@@ -2,7 +2,7 @@
 
 ## Summary
 
-![PruP3+ligand in orientation A](/figs/tunnel_A.png){width:450px;}
+![PruP3+ligand in orientation A](/figs/tunnel_A.png |  width=450px)
 
 This repository contains the information regarding the article published in the 
 IJMS not only to ensure reproducibility but also to help other scientists
@@ -25,7 +25,7 @@ bruno.czuviria@upm.es
 
 MIT License
 
-Copyright (c) [year] [fullname]
+Copyright (c) 2019 Bruno Cuevas Zuviría
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

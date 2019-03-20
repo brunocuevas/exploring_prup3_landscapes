@@ -2,7 +2,7 @@
 
 ## Summary
 
-![PruP3+ligand in orientation A](./figs/tunnel_A.png){width:450px;}
+![PruP3+ligand in orientation A](/figs/tunnel_A.png){width:450px;}
 
 This repository contains the information regarding the article published in the 
 IJMS not only to ensure reproducibility but also to help other scientists

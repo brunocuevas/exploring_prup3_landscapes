@@ -1,0 +1,101 @@
+#############################################
+# Well tempered metadynamics
+# using meta 09
+#############################################
+
+
+# STRUCTURE AND PARAMETERS
+structure               ligA_bb_w.psf
+coordinates             ligA_bb_w.pdb
+paraTypeCharmm          on
+parameters              ./pars/par_all36m_prot.prm
+parameters              ./pars/par_all36_na.prm
+parameters              ./pars/par_all36_lipid.prm
+parameters              ./pars/par_all36_carb.prm
+parameters              ./pars/par_all36_cgenff.prm
+parameters              ./pars/toppar_water_ions_namd.str
+parameters              ./pars/lig.prm
+
+
+# CONTINUING A JOB FROM RESTART FILES
+if {1} {
+set inputname           ./eq/ligA_bb_eq
+binCoordinates          $inputname.restart.coor
+binVelocities           $inputname.restart.vel
+extendedSystem	        $inputname.xsc
+}
+
+
+# INITIAL SETTINGS
+firsttimestep           55000
+set temperature         298
+
+
+# OUTPUT INFORMATION
+set output              ./run_09/ligA_bb_md
+outputname              $output
+dcdFile                 ${output}.dcd
+xstFile                 ${output}.xst
+dcdFreq                 20000
+xstFreq                 500
+restartFreq             500
+outputEnergies          5000
+outputTiming            5000
+
+
+# SOLVATION CELL INFORMATION
+wrapWater               on
+wrapAll                 on
+useGroupPressure        yes  ;# needed for rigid bonds (SHAKE) using 2fs steps
+useFlexibleCell         no   ;# no for water box, yes for membrane
+useConstantArea         no   ;# no for water box, maybe for membrane
+
+
+# PME FOR FULL-SYSTEM PERIODIC ELECTROSTATICS
+if {1} {
+PME                     yes
+PMEGridSpacing          1.0  ;# let NAMD determine grid
+}
+
+
+# NONBONDED PAIRS INTERACTIONS
+exclude                 scaled1-4
+1-4scaling              1.0
+switching               on
+cutoff                  10.0  ;# 10 with PME
+switchDist               8.0  ;# cutoff - 2
+pairlistDist            12.0  ;# cutoff + 2
+stepsPerCycle           10    ;# redo pairlists every 10 steps
+dielectric              1.0
+
+
+# TIME STEP AND INTEGRATOR PARAMETERS
+timestep                2.0  ;# 2fs/step
+rigidBonds              all  ;# activate SHAKE algorithm needed for 2fs steps
+nonbondedFreq           1    ;# nonbonded forces every step
+fullElectFrequency      2    ;# PME only every other step
+COMmotion               no
+
+
+# CONSTANT TEMPERATURE CONTROL
+if {1} {
+langevin                on   ;# do Langevin dynamics
+langevinDamping         1    ;# damping coefficient (gamma) of 5/ps
+langevinTemp            $temperature
+langevinHydrogen        no   ;# do not couple Langevin bath to hydrogens
+}
+
+
+# CONSTANT PRESSURE CONTROL (VARIABLE VOLUME)
+if {1} {
+langevinPiston          on
+langevinPistonTarget    1.01325 ;#  in bar -> 1 atm
+langevinPistonPeriod    200.0
+langevinPistonDecay     100.0
+langevinPistonTemp      $temperature
+}
+
+
+colvars				on
+cv configfile       ./colvars/meta_09.namd
+run                 50000000

@@ -1,0 +1,23 @@
+# COPIED FROM https://plumed.github.io/doc-v2.4/user-doc/html/_m_a_t_h_e_v_a_l.html
+# ---------------------------------------------------------------------------- #
+# The purpose of this script is to test whether is possible
+# to measure distances in the interesting axis
+# ---------------------------------------------------------------------------- #
+UNITS LENGTH=A TIME=fs
+FIT_TO_TEMPLATE REFERENCE=./input/plumed_reference.pdb TYPE=OPTIMAL
+p3: CENTER ATOMS=1277,1278,1327,1334,1335,1339,1340,1345,1346,1351,1352,1357,1358,1369,1370,1375
+p1: FIXEDATOM AT=-0.009,0.950,0.936
+p2: FIXEDATOM AT=0.323,1.848,0.648
+# ---------------------------------------------------------------------------- #
+# distances
+d12: DISTANCE ATOMS=p1,p2
+d13: DISTANCE ATOMS=p1,p3
+d23: DISTANCE ATOMS=p2,p3
+# ---------------------------------------------------------------------------- #
+onaxis: MATHEVAL ARG=d13,d23,d12 FUNC=(0.5*(y^2-x^2)/z) PERIODIC=NO
+fromaxis: MATHEVAL ARG=d13,d23,d12,onaxis VAR=x,y,z,o FUNC=(0.5*(y^2+x^2)-o^2-0.25*z^2) PERIODIC=NO
+# ---------------------------------------------------------------------------- #
+PRINT ARG=onaxis,fromaxis FILE=plumed_colvars STRIDE=500
+distz: METAD ARG=onaxis SIGMA=0.08 HEIGHT=0.1 PACE=500
+normal: UPPER_WALLS ARG=fromaxis AT=1.0 KAPPA=150.0
+PRINT ARG=onaxis,distz.bias STRIDE=500 FILE=colvar

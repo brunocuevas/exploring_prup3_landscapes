@@ -1,0 +1,135 @@
+# 12th Sept 2018
+# META - 06 - NAMD/colvars
+#
+# Well-Tempered metadynamics + harmonic restraints
+# CV1 : Distance projected in the difussion axis
+# CV2 : Distance projected in the orthogonal plane of difussion axis
+# WT-Metadyn(CV1)
+# Harmonic(CV2)
+#
+#----------------------------------------------------------------------------- #
+# colvars save freq
+# ---------------------------------------------------------------------------- #
+colvarstrajfrequency 500
+colvarsrestartfrequency 5000
+#----------------------------------------------------------------------------- #
+# CV 1 - Distance on difussion axis
+# Distance between ligand coordinates during simulation and original
+# coordinates, using a roto-translated frame of reference to remove
+# the bias of tumbling and difussion of protein-ligand complex.
+#
+# original positions were calculated using prody over ligA_bb_w.pdb
+# X0 = -1.768 0.768 0.765
+# Z-axis = 0.332 0.898 -0.288
+# ---------------------------------------------------------------------------- #
+colvar {
+    name DistanceZ
+    lowerboundary -20.0
+    upperboundary  10.0
+    expandboundaries on
+    width 0.05
+	distanceZ {
+        main {
+                atomsFile ./input/reference.pdb
+                atomscol O
+                atomscolvalue 2.0
+                centerreference on
+                rotatereference on
+                refpositionsfile ./input/reference.pdb
+                fittinggroup {
+                    atomsfile ./input/reference.pdb
+                    atomscol O
+                    atomscolvalue 1.0
+                }
+
+        }
+        ref {
+			dummyatom {
+                (-0.009, 0.950, 0.936)
+            }
+       }
+        axis {
+            (0.332, 0.898, -0.288)
+        }
+    }
+}
+#----------------------------------------------------------------------------- #
+# CV 2 - Normal distance to difussion axis
+# This variable has as purpose to avoid the difussion of the ligand in the
+# solvent.
+#
+# X0 = 0.332, 0.898, -0.288
+# Z-axis 0.332 0.898 -0.288
+# ---------------------------------------------------------------------------- #
+colvar {
+    name DistanceXY
+	expandboundaries on
+	width 1.0
+    lowerBoundary 0.0
+    upperBoundary 10.0
+    distanceXY {
+        main {
+                atomsfile ./input/reference.pdb
+                atomscol O
+                atomscolvalue 2.0
+                centerreference on
+                rotatereference on
+                refpositionsfile ./input/reference.pdb
+                fittinggroup {
+                    atomsfile ./input/reference.pdb
+                    atomscol O
+                    atomscolvalue 1.0
+                }
+        }
+        ref {
+			dummyAtom {
+                (-0.09, 0.950, 0.936)
+            	}
+        }
+        axis {
+            (0.332, 0.898, -0.288)
+        }
+    }
+}
+# ---------------------------------------------------------------------------- #
+# WT-Metadynmics configuration
+# DeltaT = 3000
+# A = 0.1 kcal
+# delta = 0.16 (colvarsu**2)
+# ---------------------------------------------------------------------------- #
+metadynamics {
+	name                     meta_09
+    colvars                  DistanceZ
+    hillweight               0.1
+    newHillfrequency         500
+    dumpfreeenergyfile       yes
+    writehillstrajectory     on
+	welltempered             on
+	biastemperature          4500
+
+}
+# ---------------------------------------------------------------------------- #
+# Harmonic Wall configuration
+# cilinder :
+#   avoids lateral difussion into the solvent.
+# cover :
+#   avoids central difussion into the solvent
+# ---------------------------------------------------------------------------- #
+harmonicWalls {
+	name cilinder
+	colvars DistanceXY
+	lowerwalls 0.0
+	upperwalls 9.0
+	lowerwallconstant 20.0
+	upperwallconstant 20.0
+    outputEnergy on
+}
+harmonicWalls {
+    name cover
+    colvars DistanceZ
+    lowerwalls -20.0
+    upperwalls 12.0
+    lowerwallconstant 20.0
+    upperwallconstant 20.0
+    outputEnergy on
+}

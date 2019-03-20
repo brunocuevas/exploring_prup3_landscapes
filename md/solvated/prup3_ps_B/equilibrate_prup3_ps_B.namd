@@ -1,0 +1,107 @@
+##################################
+#  prup3_ps_B: Equilibration 
+##################################
+
+
+# STRUCTURE AND PARAMETERS
+structure               prup3_ps_B_w.psf
+coordinates             prup3_ps_B_w.pdb
+paraTypeCharmm          on
+parameters              par_all36m_prot.prm
+parameters              par_all36_na.prm
+parameters              par_all36_lipid.prm
+parameters              par_all36_carb.prm
+parameters              par_all36_cgenff.prm
+parameters              toppar_water_ions_namd.str
+parameters              PHS.prm
+
+
+# CONTINUING A JOB FROM RESTART FILES
+if {1} {
+set inputname           prup3_ps_B
+binCoordinates          $inputname.restart.coor
+binVelocities           $inputname.restart.vel
+extendedSystem	        $inputname.xsc
+} 
+
+
+# INITIAL SETTINGS
+firsttimestep           5000
+set temperature         298
+
+
+# OUTPUT INFORMATION
+set output              prup3_ps_B
+outputname              $output
+dcdFile                 ${output}.dcd
+xstFile                 ${output}.xst
+dcdFreq                 500
+xstFreq                 500
+restartFreq             500
+outputEnergies          1000
+outputTiming            1000
+
+
+# SOLVATION CELL INFORMATION
+wrapWater               on
+wrapAll                 on
+useGroupPressure        yes  ;# needed for rigid bonds (SHAKE) using 2fs steps
+useFlexibleCell         no   ;# no for water box, yes for membrane
+useConstantArea         no   ;# no for water box, maybe for membrane
+
+
+# PME FOR FULL-SYSTEM PERIODIC ELECTROSTATICS
+if {1} {
+PME                     yes
+PMEGridSpacing          1.0  ;# let NAMD determine grid
+}
+
+
+# NON-BONDED PAIRS INTERACTIONS
+exclude                 scaled1-4
+1-4scaling              1.0
+switching               on
+cutoff                  10.0  ;# 10 with PME
+switchDist               8.0  ;# cutoff - 2
+pairlistDist            12.0  ;# cutoff + 2
+stepsPerCycle           10    ;# redo pairlists every 10 steps
+dielectric              1.0
+
+
+# TIME STEP AND INTEGRATOR PARAMETERS
+timestep                2.0  ;# 2fs/step
+rigidBonds              all  ;# activate SHAKE algorithm needed for 2fs steps
+nonbondedFreq           1    ;# nonbonded forces every step
+fullElectFrequency      2    ;# PME only every other step
+COMmotion               no
+
+
+# CONSTANT TEMPERATURE CONTROL
+if {1} {
+langevin                on   ;# do Langevin dynamics
+langevinDamping         1    ;# damping coefficient (gamma) of 5/ps
+langevinTemp            $temperature
+langevinHydrogen        no   ;# do not couple Langevin bath to hydrogens
+}
+
+
+# CONSTANT PRESSURE CONTROL (VARIABLE VOLUME)
+if {0} {
+langevinPiston          on
+langevinPistonTarget    1.01325 ;#  in bar -> 1 atm
+langevinPistonPeriod    200.0
+langevinPistonDecay     100.0
+langevinPistonTemp      $temperature
+}
+
+
+# FIXED ATOMS CONSTRAINT (set PDB occupancy factor column to 1.0)
+if {1} {
+fixedAtoms              on
+fixedAtomsFile          prup3_ps_B_w_protein_fixed.pdb
+fixedAtomsCol           O
+}
+
+
+# NUMBER OF EQUILIBRATION STEPS
+run                 50000 

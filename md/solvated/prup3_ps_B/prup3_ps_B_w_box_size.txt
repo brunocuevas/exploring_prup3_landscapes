@@ -1,0 +1,15 @@
+# Block to be inserted into PERIODIC BOUNDARY CONDITIONS
+# segment in the NAMD input to step 1 (minimization)
+
+# (1) NVT ENSEMBLE:
+cellBasisVector1        56.6     0.0     0.0
+cellBasisVector2         0.0    66.1     0.0
+cellBasisVector3         0.0     0.0    58.9
+cellOrigin               0.0     0.0     0.0
+
+# (2) NPT ENSEMBLE:
+cellBasisVector1        58.6     0.0     0.0
+cellBasisVector2         0.0    68.1     0.0
+cellBasisVector3         0.0     0.0    60.9
+cellOrigin               0.0     0.0     0.0
+

@@ -1,0 +1,76 @@
+# 12th Sept 2018
+# META - 06 - NAMD/colvars
+#
+# Well-Tempered metadynamics + harmonic restraints
+# CV1 : Distance projected in the difussion axis
+# CV2 : Distance projected in the orthogonal plane of difussion axis
+# WT-Metadyn(CV1)
+# Harmonic(CV2)
+#
+#----------------------------------------------------------------------------- #
+# colvars save freq
+# ---------------------------------------------------------------------------- #
+colvarstrajfrequency 500
+colvarsrestartfrequency 5000
+colvar {
+    name DistanceZ
+    lowerboundary -20.0
+    upperboundary  10.0
+    expandboundaries on
+    width 0.05
+	distanceZ {
+        main {
+                atomsFile ref_sphA.pdb
+                atomscol O
+                atomscolvalue 2.0
+                centerreference on
+                rotatereference on
+                refpositionsfile ref_sphA.pdb
+                fittinggroup {
+                    atomsfile ref_sphA.pdb
+                    atomscol O
+                    atomscolvalue 1.0
+                }
+
+        }
+        ref {
+			dummyatom {
+                (-0.009, 0.950, 0.936)
+            }
+       }
+        axis {
+            (0.332, 0.898, -0.288)
+        }
+    }
+}
+colvar {
+    name DistanceXY
+	expandboundaries on
+	width 1.0
+    lowerBoundary 0.0
+    upperBoundary 10.0
+    distanceXY {
+        main {
+                atomsfile ref_sphA.pdb
+                atomscol O
+                atomscolvalue 2.0
+                centerreference on
+                rotatereference on
+                refpositionsfile ref_sphA.pdb
+                fittinggroup {
+                    atomsfile ref_sphA.pdb
+                    atomscol O
+                    atomscolvalue 1.0
+                }
+        }
+        ref {
+			dummyAtom {
+                (-0.09, 0.950, 0.936)
+            	}
+        }
+        axis {
+            (0.332, 0.898, -0.288)
+        }
+    }
+}
+

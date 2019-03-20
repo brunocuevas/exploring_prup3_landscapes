@@ -1,0 +1,43 @@
+# 12th Sept 2018
+# coordination number
+#
+#
+# CV1 : coordination number ligand-protein
+#
+#----------------------------------------------------------------------------- #
+# colvars save freq
+# ---------------------------------------------------------------------------- #
+colvarstrajfrequency 500
+colvarsrestartfrequency 5000
+#----------------------------------------------------------------------------- #
+# CV 1 - Distance on difussion axis
+# Distance between ligand coordinates during simulation and original
+# coordinates, using a roto-translated frame of reference to remove
+# the bias of tumbling and difussion of protein-ligand complex.
+#
+# original positions were calculated using prody over ligA_bb_w.pdb
+# X0 = -1.768 0.768 0.765
+# Z-axis = 0.332 0.898 -0.288
+# ---------------------------------------------------------------------------- #
+colvar {
+    name coordNum
+    lowerboundary 0.0
+    upperboundary 10.0
+    expandboundaries on
+    width 0.05
+	coordNum {
+        group1 {psfSegID PROA}
+        group2 {psfSegID HETA}
+    }
+}
+metadynamics {
+	name                     meta_09
+    colvars                  coordNum
+    hillweight               0.1
+    newHillfrequency         500
+    dumpfreeenergyfile       yes
+    writehillstrajectory     on
+	welltempered             on
+	biastemperature          4500
+
+}

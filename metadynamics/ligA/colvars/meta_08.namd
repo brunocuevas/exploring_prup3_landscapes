@@ -1,0 +1,176 @@
+# 26th Nov 2018
+# META - 07 - NAMD/colvars
+#
+# Harmonic restraints over RMSD on major helixes + well tempered
+# metadynamics gyr radius
+#
+# R1 : RMSD on helix 1 compared with initial structure
+# R2 : RMSD on helix 2 compared with initial structure
+# R3 : RMSD on helix 3 compared with initial structure
+# R4 : RMSD on helix 4 compared with initial structure
+# Rg : Radius of gyration
+#
+# h1 : harmonic(R1, k1, mu1)
+# h2 : harmonic(R2, k2, mu2)
+# h3 : harmonic(R3, k3, mu3)
+# h4 : harmonic(R4, k4, mu4)
+# wtm: well tempered metadynamics(Rg, delta, A, AT)
+# ---------------------------------------------------------------------------- #
+
+
+#	name 	lr 	ur 	k 	mu 	vars
+#0 	H1 	3 	20 	10.235562 	0.850530 	0.024425
+#1 	H2 	25 	38 	34.452642 	0.401370 	0.007256
+#2 	H3 	42 	58 	76.036955 	0.379044 	0.003288
+#3 	H4 	64 	73 	16.370738 	0.595337 	0.015271
+
+
+#----------------------------------------------------------------------------- #
+# colvars save freq
+# ---------------------------------------------------------------------------- #
+colvarsTrajFrequency 500
+colvarsRestartFrequency 3000
+# ---------------------------------------------------------------------------- #
+# R1 - RMSD helix 1
+# ---------------------------------------------------------------------------- #
+colvar {
+	name R1
+	lowerBoundary 0.0
+	upperBoundary 15.0
+	expandBoundaries on
+	width 1.0
+	rmsd {
+		atoms {
+			atomsfile ./input/reference_helix_rmsd.pdb
+			atomscol O
+			atomscolvalue 1.0
+		}
+		refpositionsfile ./input/reference_helix_rmsd.pdb
+		refpositionscol O
+		refpositionscolvalue 1.0
+	}
+}
+# ---------------------------------------------------------------------------- #
+# R2 - RMSD helix 2
+# ---------------------------------------------------------------------------- #
+colvar {
+	name R2
+	lowerBoundary 0.0
+	upperBoundary 15.0
+	expandBoundaries on
+	width 1.0
+	rmsd {
+		atoms {
+			atomsfile ./input/reference_helix_rmsd.pdb
+			atomscol O
+			atomscolvalue 2.0
+		}
+		refpositionsfile ./input/reference_helix_rmsd.pdb
+		refpositionscol O
+		refpositionscolvalue 2.0
+	}
+}
+
+# ---------------------------------------------------------------------------- #
+# R3 - RMSD helix 3
+# ---------------------------------------------------------------------------- #
+colvar {
+	name R3
+	lowerBoundary 0.0
+	upperBoundary 15.0
+	expandBoundaries on
+	width 1.0
+	rmsd {
+		atoms {
+			atomsfile ./input/reference_helix_rmsd.pdb
+			atomscol O
+			atomscolvalue 3.0
+		}
+		refpositionsfile ./input/reference_helix_rmsd.pdb
+		refpositionscol O
+		refpositionscolvalue 3.0
+	}
+}
+# ---------------------------------------------------------------------------- #
+# R4 - RMSD helix 4
+# ---------------------------------------------------------------------------- #
+colvar {
+	name R4
+	lowerBoundary 0.0
+	upperBoundary 15.0
+	expandBoundaries on
+	width 1.0
+	rmsd {
+		atoms {
+			atomsfile ./input/reference_helix_rmsd.pdb
+			atomscol O
+			atomscolvalue 4.0
+		}
+		refpositionsfile ./input/reference_helix_rmsd.pdb
+		refpositionscol O
+		refpositionscolvalue 4.0
+	}
+}
+# ---------------------------------------------------------------------------- #
+# Rg - Radius of gyration
+# ---------------------------------------------------------------------------- #
+colvar {
+	name Rg
+	lowerBoundary 9.0
+	upperBoundary 20.0
+	expandBoundaries off
+	width 0.1
+	gyration {
+		atoms {
+			atomsfile ./input/reference_helix_rmsd.pdb
+			atomscol B
+			atomscolvalue 1.0
+		}
+	}
+}
+
+# ---------------------------------------------------------------------------- #
+# harmonic configuration
+# ---------------------------------------------------------------------------- #
+harmonic {
+	name h1
+	colvars R1
+	forceconstant 10.24
+	centers 0.850530
+	outputEnergy on
+}
+harmonic {
+	name h2
+	colvars R2
+	forceconstant 34.45
+	centers 0.40
+	outputEnergy on
+}
+harmonic {
+	name h3
+	colvars R3
+	forceconstant 76.04
+	centers 0.38
+	outputEnergy on
+}
+harmonic {
+	name h4
+	colvars R4
+	forceconstant 16.37
+	centers 0.60
+	outputEnergy on
+}
+# ---------------------------------------------------------------------------- #
+# wt metadynamics configuration
+# ---------------------------------------------------------------------------- #
+metadynamics {
+	name                     wtm
+    colvars                  Rg
+    hillweight               0.1
+    hillwidth                1.0
+    newHillfrequency         500
+    dumpfreeenergyfile       yes
+    writehillstrajectory     on
+	welltempered             on
+	biastemperature          4500
+}

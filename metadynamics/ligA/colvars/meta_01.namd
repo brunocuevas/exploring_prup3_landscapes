@@ -1,0 +1,130 @@
+# 12th Sept 2018
+# META - 01 - NAMD/colvars
+#
+# Well-Tempered metadynamics + harmonic restraints
+# CV1 : Distance. ligand distance to original position
+# CV2 : Orientation. ligand tilt to difussion axis
+# CV3 : ProteinOrientation. protein orientation
+# WT-Metadyn(CV1, CV2)
+# Harmonic(CV3)
+#
+#----------------------------------------------------------------------------- #
+# colvars save freq
+# ---------------------------------------------------------------------------- #
+colvarsTrajFrequency 500
+colvarsRestartFrequency 1000
+#----------------------------------------------------------------------------- #
+# CV 1 - Distance
+# Distance between ligand coordinates during simulation and original
+# coordinates, using a roto-translated frame of reference to remove
+# the bias of tumbling and difussion of protein-ligand complex.
+#
+# original positions were calculated using prody over ligA_bb_w.pdb
+# X0 = -1.768 0.768 0.765
+# ---------------------------------------------------------------------------- #
+colvar {
+	name Distance
+	lowerBoundary 0.0
+	upperBoundary 25.0
+	width 0.1
+	distance {
+		group1 {
+			atomsfile ./input/reference.pdb
+			atomscol O
+			atomscolvalue 2.0
+			rotatereference yes
+			centerreference yes
+			refpositionsfile ./input/reference.pdb
+			fittingGroup {
+				atomsfile ./input/reference.pdb
+				atomscol O
+				atomscolvalue 1.0
+			}
+		}
+		group2 {
+			dummyatom (-1.768, 0.768, 0.765)
+		}
+	}
+}
+#----------------------------------------------------------------------------- #
+# CV 2 - Orientation
+# It has been hypothesized that pru p 3 and ligands have two possible
+# orientations: one in which the ligand aromatic groups are orientated
+# towards the Tyr79, and another in which is the tail the one orientated towards
+# Tyr79.
+# Using tilt variable over a the main difussion axis that has been calculated
+# from MDPocket data itself calculated from conventional MD
+# 
+# z = 0.332, 0.898, -0.288
+#
+# ---------------------------------------------------------------------------- #
+colvar {
+	name Orientation
+	lowerBoundary -1.0
+	upperBoundary  1.0
+	width 0.02
+	tilt {
+		atoms {
+			atomsfile ./input/reference.pdb
+			atomscol O
+			atomscolvalue 2.0
+		}
+		refpositionsfile ./input/reference.pdb
+		refpositionscol O
+		refpositionscolvalue 2.0
+		axis {
+			(0.332, 0.898, -0.288)
+		}
+	}
+}
+#----------------------------------------------------------------------------- #
+# CV 3 - Protein orientation
+# The Orientation CV has presented itself as difficult to obtain if protein
+# can tumble due to changes in the frame of reference. Since it was not
+# possible to isolate protein-tumbling from changes in the internal reference
+# system, protein rotation was stopped as it was suggested in the manual
+# in the section 10.5-orientation.
+# All C-alpha from protein are involved
+# ---------------------------------------------------------------------------- #
+colvar {
+	name ProteinOrientation
+	orientation {
+		atoms {
+			atomsfile ./input/reference.pdb
+			atomscol O
+			atomscolvalue 1.0
+		}
+		refpositionsfile ./input/reference.pdb
+		refpositionscol O
+		refpositionscolvalue 1.0
+	}
+}
+#----------------------------------------------------------------------------- #
+# WT-Metadynmics configuration
+# DeltaT = 1000
+# A = 0.1 kcal
+# delta = 0.08 (colvarsu**2)
+# ---------------------------------------------------------------------------- #
+metadynamics {
+	name meta_01_wtmetad
+	colvars Distance Orientation
+	hillwidth 0.08
+	hillweight 0.1
+	dumpfreeenergyfile yes
+	writehillstrajectory on
+	welltempered on
+	biastemperature 1000
+}
+#----------------------------------------------------------------------------- #
+# harmonic restraint
+# its purpose is stopping tumbling
+# ---------------------------------------------------------------------------- #
+harmonic {
+	name meta_01_harmonic
+	colvars ProteinOrientation
+	forceconstant 25.0
+	centers {
+		(1.0, 0.0, 0.0, 0.0)
+	}
+}
+# by Bruno Cuevas
